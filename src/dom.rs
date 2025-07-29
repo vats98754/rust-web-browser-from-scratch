@@ -3,8 +3,7 @@ use std::collections::{HashMap, HashSet};
 // Data struct and type defns
 
 pub struct CommentData {
-    comment_text: String,
-    length: Integer
+    comment: String
 }
 
 pub struct ElementData {
@@ -29,7 +28,7 @@ pub struct Node {
 
 // Constructor definitions
 
-fn text(data: String) -> Node {
+pub fn text(data: String) -> Node {
     Node { children: Vec::new(), node_type: NodeType::Text(data)};
 }
 
@@ -37,6 +36,13 @@ pub fn elem(tag_name: String, attrs: AttrsMap, children: Vec<Node>) -> Node {
     Node {
         children,
         NodeType::Element(ElementData { tag_name, attrs })
+    }
+}
+
+pub fn comment(comment: String) -> Node {
+    Node {
+        Vec::new(),
+        NodeType::Comment(CommentData { comment })
     }
 }
 

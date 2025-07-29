@@ -14,9 +14,8 @@ impl Parser {
         self.input[self.pos..].starts_with(s)
     }
 
-    // If the exact string `s` is found at the current position, consume it.
-    // Otherwise, panic.
-    fn except(&mut self, s: &str) {
+    // If the exact string `s` is found at the current position, consume it; otherwise, panic
+    fn expect(&mut self, s: &str) {
         if self.starts_with(s) {
             self.pos += s.len();
         } else {
@@ -56,16 +55,27 @@ impl Parser {
 
     // Parse a single node
     fn parse_node(&mut self) -> dom::Node {
-        if self.starts_with("<") {
-            self.parse_element()
+        if self.starts_with("<!") {
+            self.parse_comment();
+        } else if self.starts_with("<") {
+            self.parse_element();
         } else {
-            self.parse_text()
+            self.parse_text();
         }
     }
 
     // In our subset of HTML, text node can contain any char except "<"
     fn parse_text(&mut self) -> dom::Node {
         dom::text(self.consume_while(|c| c != '<'))
+    }
+    
+    // In our subset of HTML, comment node can contain any char except -
+    fn parse_comment(&mut self) -> dom::Node {
+        self.expect("<!--");
+        let text = self.consume_while(|c| c != '-');
+        self.expect("-->");
+
+        return dom::comment(text);
     }
 
     // Element node contains open and close tag
