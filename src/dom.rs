@@ -11,7 +11,7 @@ pub struct ElementData {
     attrs: AttrsMap
 }
 
-type AttrsMap = HashMap<String, String>;
+pub type AttrsMap = HashMap<String, String>;
 
 pub enum NodeType {
     Text(String),
@@ -29,20 +29,23 @@ pub struct Node {
 // Constructor definitions
 
 pub fn text(data: String) -> Node {
-    Node { children: Vec::new(), node_type: NodeType::Text(data)};
+    Node {
+        children: vec![],
+        node_type: NodeType::Text(data)
+    }
 }
 
 pub fn elem(tag_name: String, attrs: AttrsMap, children: Vec<Node>) -> Node {
     Node {
         children,
-        NodeType::Element(ElementData { tag_name, attrs })
+        node_type: NodeType::Element(ElementData { tag_name, attrs })
     }
 }
 
 pub fn comment(comment: String) -> Node {
     Node {
-        Vec::new(),
-        NodeType::Comment(CommentData { comment })
+        children: vec![],
+        node_type: NodeType::Comment(CommentData { comment })
     }
 }
 
