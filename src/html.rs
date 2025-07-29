@@ -1,3 +1,6 @@
+use crate::dom;
+use std::collections::HashMap;
+
 struct Parser {
     pos: usize,
     input: String
@@ -45,7 +48,7 @@ impl Parser {
 
     // Consume and discard any number of whitespaces
     fn consume_whitespace(&mut self) {
-        self.consume_while(char::is_whitespace)
+        self.consume_while(char::is_whitespace);
     }
 
     // Parse a tag or attribute name
@@ -56,11 +59,11 @@ impl Parser {
     // Parse a single node
     fn parse_node(&mut self) -> dom::Node {
         if self.starts_with("<!") {
-            self.parse_comment();
+            self.parse_comment()
         } else if self.starts_with("<") {
-            self.parse_element();
+            self.parse_element()
         } else {
-            self.parse_text();
+            self.parse_text()
         }
     }
 
@@ -91,7 +94,7 @@ impl Parser {
 
         // Closing tag
         self.expect("</");
-        self.expect(tag_name);
+        self.expect(&tag_name);
         self.expect(">");
 
         return dom::elem(tag_name, attrs, children);
@@ -109,9 +112,9 @@ impl Parser {
     fn parse_attr_value(&mut self) -> String {
         let open_quote = self.consume_char();
         assert!(open_quote == '"' || open_quote == '\'');
-        let value = consume_while(|c| c != open_quote)
+        let value = self.consume_while(|c| c != open_quote);
         let close_quote = self.consume_char();
-        assert_eq(open_quote, close_quote);
+        assert_eq!(open_quote, close_quote);
         return value;
     }
 
@@ -129,8 +132,8 @@ impl Parser {
         return attributes;
     }
 
-    // parse a sequence of sibling nodes
-    fn parse_nodes(&mut self) {
+    // parse a sequence of sibling nodes separated by whitespace
+    fn parse_nodes(&mut self) -> Vec<dom::Node> {
         let mut nodes = Vec::new();
         loop {
             self.consume_whitespace();
@@ -144,7 +147,7 @@ impl Parser {
 
     // parse entire HTML doc and return its root element
     pub fn parse(source: String) -> dom::Node {
-        let mut nodes = Parser { pos = 0, input: source }.parse_nodes();
+        let mut nodes = Parser { pos: 0, input: source }.parse_nodes();
         // if the DOM contains a root element, return it; otherwise, create one
         if nodes.len() == 1 {
             return nodes.remove(0);
