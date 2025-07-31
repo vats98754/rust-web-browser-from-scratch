@@ -3,12 +3,12 @@ use std::collections::{HashMap, HashSet};
 // Data struct and type defns
 
 pub struct CommentData {
-    comment: String
+    pub comment: String
 }
 
 pub struct ElementData {
-    tag_name: String,
-    attrs: AttrsMap
+    pub tag_name: String,
+    pub attrs: AttrsMap
 }
 
 pub type AttrsMap = HashMap<String, String>;
@@ -21,9 +21,9 @@ pub enum NodeType {
 
 pub struct Node {
     // data common to all Node structs
-    children: Vec<Node>,
+    pub children: Vec<Node>,
     // data specific to each node type
-    node_type: NodeType
+    pub node_type: NodeType
 }
 
 // Constructor definitions
