@@ -1,7 +1,7 @@
 use crate::dom;
 use std::collections::HashMap;
 
-struct Parser {
+pub struct Parser {
     pos: usize,
     input: String
 }
