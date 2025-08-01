@@ -1,54 +1,71 @@
-use crate::dom;
-
 // a simple selector can include a tag name, an ID prefixed by '#', any number of class
 // names prefixed by '.', or some combination of the above. If the tag name is empty
 // or '*' then it is a “universal selector” that can match any tag.
 
 // a selector is either a simple selector or a chain of selectors with delimiter: ' ', '+', '>'
-struct Stylesheet {
-    rules: Vec<Rule>
+
+#[derive(Debug, Clone)]
+pub enum Origin {
+    UserAgent,
+    User,
+    Author,
 }
 
-struct Rule {
-    selectors: Vec<Selector>,
-    declarations: Vec<Declaration>
+#[derive(Debug, Clone)]
+pub struct Stylesheet {
+    pub rules: Vec<Rule>,
+    pub origin: Origin,
+}
+
+#[derive(Debug, Clone)]
+pub struct Rule {
+    pub selectors: Vec<Selector>,
+    pub declarations: Vec<Declaration>,
 }
 
 // ways to select an element, could be by its tag_name, id, or list of classes
-struct SimpleSelector {
-    tag_name: Option<String>,
-    id: Option<String>,
-    class: Vec<String>
+#[derive(Debug, Clone)]
+pub struct SimpleSelector {
+    pub tag_name: Option<String>,
+    pub id: Option<String>,
+    pub class: Vec<String>
 }
 
 // types of selector, for now just the atomic simple selector is implemented
-enum Selector {
+#[derive(Debug, Clone)]
+pub enum Selector {
     Simple(SimpleSelector)
 }
 
 // paired with a selector to specify what properties of selected DOM nodes to apply
-struct Declaration {
-    name: String, // name of property
-    value: Value // value set to this property
+#[derive(Debug, Clone)]
+pub struct Declaration {
+    pub name: String, // name of property
+    pub value: Value, // value set to this property
+    pub important: bool, // !important flag
 }
 
-enum Value {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Value {
     Keyword(String),
     Length(f32, Unit),
     ColorValue(Color),
+    Inherit,
     // insert more values as required
 }
 
-enum Unit {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Unit {
     Px,
     // insert more units as required
 }
 
-struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
-    a: u8
+#[derive(Debug, Clone, PartialEq)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8
 }
 
 pub type Specificity = (usize, usize, usize);
@@ -64,9 +81,16 @@ impl Selector {
     }
 }
 
-pub fn parse(source: String) -> Stylesheet {
+pub fn parse(source: String, origin: Origin) -> Stylesheet {
     let mut parser = Parser { pos: 0, input: source };
-    return Stylesheet { rules: parser.parse_rules() };
+    return Stylesheet { rules: parser.parse_rules(), origin };
+}
+
+// Create default user agent stylesheet with basic HTML defaults
+pub fn default_user_agent_stylesheet() -> Stylesheet {
+    let css = "html, body { display: block; } head { display: none; } div, p, h1, h2, h3, h4, h5, h6 { display: block; } span, a, em, strong { display: inline; } script, style { display: none; }".to_string();
+    
+    parse(css, Origin::UserAgent)
 }
 
 struct Parser {
@@ -117,7 +141,13 @@ impl Parser {
         match self.next_char() {
             '0'..'9' => self.parse_length(),
             '#' => self.parse_color(),
-            _ => Value::Keyword(self.parse_identifier())
+            _ => {
+                let keyword = self.parse_identifier();
+                match keyword.as_str() {
+                    "inherit" => Value::Inherit,
+                    _ => Value::Keyword(keyword)
+                }
+            }
         }
     }
 
@@ -165,7 +195,7 @@ impl Parser {
                 }
                 '.' => {
                     self.consume_char();
-                    selector.id = Some(self.parse_identifier());
+                    selector.class.push(self.parse_identifier());
                 }
                 '*' => {
                     // universal selector
@@ -204,8 +234,22 @@ impl Parser {
         self.consume_whitespace();
         let value = self.parse_value();
         self.consume_whitespace();
+        
+        // Check for !important
+        let important = if self.starts_with("!important") {
+            self.pos += "!important".len();
+            self.consume_whitespace();
+            true
+        } else {
+            false
+        };
+        
         self.expect_char(';');
-        return Declaration { name, value }
+        return Declaration { name, value, important }
+    }
+
+    fn starts_with(&self, s: &str) -> bool {
+        self.input[self.pos..].starts_with(s)
     }
 
     fn parse_declarations(&mut self) -> Vec<Declaration> {
