@@ -1,0 +1,15 @@
+[package]
+name = "rust-web-browser-from-scratch"
+version = "0.1.0"
+edition = "2021"
+authors = ["Anvay Vats <vats98754@gapps.uwcsea.edu.sg>"]
+description = "A web browser implemented from scratch in Rust."
+license = "MIT"
+repository = "https://github.com/vats98754/rust-web-browser-from-scratch"
+
+[[bin]]
+name = "browser"
+path = "src/main.rs"
+
+[dependencies]
+# Add dependencies
