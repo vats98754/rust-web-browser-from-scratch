@@ -8,35 +8,35 @@ pub use self::BoxType::{AnonymousBlock, InlineNode, BlockNode};
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Dimensions {
     // position of content area relative to doc origin
-    content: Rect,
+    pub content: Rect,
 
     // surrounding edges
-    padding: EdgeSizes,
-    border: EdgeSizes,
-    margin: EdgeSizes,
+    pub padding: EdgeSizes,
+    pub border: EdgeSizes,
+    pub margin: EdgeSizes,
 }
 
 // rectangle that defines the box position, width, and height
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Rect {
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
 }
 
 #[derive(Clone, Copy, Default, Debug)]
 pub struct EdgeSizes {
-    left: f32,
-    right: f32,
-    top: f32,
-    bottom: f32,
+    pub left: f32,
+    pub right: f32,
+    pub top: f32,
+    pub bottom: f32,
 }
 
 pub struct LayoutBox<'a> {
-    dimensions: Dimensions,
-    box_type: BoxType<'a>,
-    children: Vec<LayoutBox<'a>>
+    pub dimensions: Dimensions,
+    pub box_type: BoxType<'a>,
+    pub children: Vec<LayoutBox<'a>>
 }
 
 pub enum BoxType<'a> {
@@ -75,7 +75,7 @@ pub fn layout_tree<'a>(node: &'a StyledNode<'a>, mut containing_block: Dimension
 }
 
 // build the tree of LayoutBoxes, but don't perform any layout calculations yet
-fn build_layout_tree<'a>(style_node: &'a StyledNode<'a>) -> LayoutBox<'a> {
+pub fn build_layout_tree<'a>(style_node: &'a StyledNode<'a>) -> LayoutBox<'a> {
     // Create the root box.
     let mut root = LayoutBox::new(match style_node.display() {
         Display::Block => BlockNode(style_node),
@@ -94,7 +94,7 @@ fn build_layout_tree<'a>(style_node: &'a StyledNode<'a>) -> LayoutBox<'a> {
     root
 }
 
-impl LayoutBox<'_> {
+impl<'a> LayoutBox<'a> {
     // lay out a box and its descendants
     fn layout(&mut self, containing_block: Dimensions) {
         match self.box_type {
@@ -257,7 +257,7 @@ impl LayoutBox<'_> {
     }
 
     // where a new inline child should go
-    fn get_inline_container(&mut self) -> &mut LayoutBox {
+    fn get_inline_container(&mut self) -> &mut LayoutBox<'a> {
         match self.box_type {
             InlineNode(_) | AnonymousBlock => self,
             BlockNode(_) => {
