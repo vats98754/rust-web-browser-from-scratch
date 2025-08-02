@@ -8,8 +8,9 @@ license = "MIT"
 repository = "https://github.com/vats98754/rust-web-browser-from-scratch"
 
 [[bin]]
-name = "browser"
+name = "avbrowser"
 path = "src/main.rs"
 
 [dependencies]
-# Add dependencies
+# getopts = "0.2.21"
+# image = { version = "0.25", default-features = false, features = ["png"] }
