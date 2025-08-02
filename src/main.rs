@@ -1,52 +1,76 @@
+// extern crate getopts;
+// extern crate image;
+
+use std::default::Default;
+use std::io::{Read, BufWriter};
+use std::fs::File;
+
 pub mod css;
 pub mod dom;
 pub mod html;
-// pub mod layout;
+pub mod layout;
 pub mod style;
-// pub mod painting;
-// pub mod pdf;
-
-use dom::NodeType;
+pub mod painting;
+pub mod pdf;
 
 fn main() {
-    let html = r#"
-        <html>
-            <head>
-                <title>Test</title>
-            </head>
-            <body>
-                <div id="main" class="container">
-                    <p style="color: red; font-weight: bold !important;">Hello World!</p>
-                    <span class="highlight">Styled text</span>
-                    <div class="inherit-demo">This inherits color</div>
-                </div>
-            </body>
-        </html>
-    "#.to_string();
+    // Simplified version - using hardcoded defaults due to dependency issues
+    let args: Vec<String> = std::env::args().collect();
     
-    // parse HTML into DOM
-    let dom = html::Parser::parse(html);
+    // Default file paths
+    let html_file = if args.len() > 1 { &args[1] } else { "examples/test.html" };
+    let css_file = if args.len() > 2 { &args[2] } else { "examples/test.css" };
+    let output_file = if args.len() > 3 { &args[3] } else { "output.pdf" };
     
-    // create multiple stylesheets demonstrating the cascade
-    let user_agent_css = css::default_user_agent_stylesheet();
-    
-    let author_css = css::parse("body { color: blue; font-family: Arial; } .container { background-color: #f0f0f0; display: block; } .highlight { color: green; font-weight: bold; } p { color: black; font-weight: normal; }".to_string(), css::Origin::Author);
-    
-    // Apply stylesheets with proper cascade order
-    let stylesheets = vec![user_agent_css, author_css];
-    let styled_tree = style::style_tree(&dom, &stylesheets);
-    println!("styled tree created");
-    
-    // test cascade: check if the head element has display: none from user agent
-    if let NodeType::Element(ref elem) = styled_tree.node.node_type {
-        println!("Root element: {}", elem.tag_name);
+    println!("Parsing HTML: {}", html_file);
+    println!("Parsing CSS: {}", css_file);
+    println!("Output: {}", output_file);
+
+    // Read input files:
+    let html = read_source(html_file.to_string());
+    let css  = read_source(css_file.to_string());
+
+    // Since we don't have an actual window, hard-code the "viewport" size.
+    let mut viewport: layout::Dimensions = Default::default();
+    viewport.content.width  = 800.0;
+    viewport.content.height = 600.0;
+
+    // Parsing and rendering:
+    let root_node = html::parse(html);
+    let stylesheet = css::parse(css, css::Origin::Author);
+    let stylesheets = [stylesheet];
+    let style_root = style::style_tree(&root_node, &stylesheets);
+    let layout_root = layout::layout_tree(&style_root, viewport);
+
+    // Create the output file:
+    let png = output_file.ends_with(".png");
+    let filename = output_file.to_string();
+    let mut file = BufWriter::new(File::create(&filename).unwrap());
+
+    // Write to the file:
+    let ok = if png {
+        // Temporarily disabled PNG output due to image crate dependency issues
+        println!("PNG output temporarily disabled - use PDF format instead");
+        false
+        // let canvas = painting::paint(&layout_root, viewport.content);
+        // let (w, h) = (canvas.width as u32, canvas.height as u32);
+        // let img = image::ImageBuffer::from_fn(w, h, move |x, y| {
+        //     let color = canvas.pixels[(y * w + x) as usize];
+        //     image::Rgba([color.r, color.g, color.b, color.a])
+        // });
+        // image::DynamicImage::ImageRgba8(img).write_to(&mut file, image::ImageFormat::Png).is_ok()
+    } else {
+        pdf::render(&layout_root, viewport.content, &mut file).is_ok()
+    };
+    if ok {
+        println!("Saved output as {}", filename)
+    } else {
+        println!("Error saving output as {}", filename)
     }
-    
-    // check if proper styled children
-    for child in &styled_tree.children {
-        if let NodeType::Element(ref elem) = child.node.node_type {
-            println!("Child element: {} with {} style properties", 
-                elem.tag_name, child.specified_values.len());
-        }
-    }
+}
+
+fn read_source(filename: String) -> String {
+    let mut str = String::new();
+    File::open(filename).unwrap().read_to_string(&mut str).unwrap();
+    str
 }
