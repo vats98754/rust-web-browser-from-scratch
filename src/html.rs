@@ -144,15 +144,15 @@ impl Parser {
         }
         return nodes;
     }
+}
 
-    // parse entire HTML doc and return its root element
-    pub fn parse(source: String) -> dom::Node {
-        let mut nodes = Parser { pos: 0, input: source }.parse_nodes();
-        // if the DOM contains a root element, return it; otherwise, create one
-        if nodes.len() == 1 {
-            return nodes.remove(0);
-        } else {
-            return dom::elem("html".to_string(), HashMap::new(), nodes);
-        }
+// parse entire HTML doc and return its root element
+pub fn parse(source: String) -> dom::Node {
+    let mut nodes = Parser { pos: 0, input: source }.parse_nodes();
+    // if the DOM contains a root element, return it; otherwise, create one
+    if nodes.len() == 1 {
+        return nodes.remove(0);
+    } else {
+        return dom::elem("html".to_string(), HashMap::new(), nodes);
     }
 }
