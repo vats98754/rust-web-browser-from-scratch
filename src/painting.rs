@@ -1,4 +1,4 @@
-use crate::layout::{AnonymousBlock, BlockNode, InlineNode, LayoutBox, Rect, build_layout_tree};
+use crate::layout::{AnonymousBlock, BlockNode, InlineNode, LayoutBox, Rect};
 use crate::css::{Value, Color};
 
 pub struct Canvas {
@@ -109,7 +109,7 @@ impl Canvas {
     }
 
     fn paint_item(&mut self, item: &DisplayCommand) {
-        match *item {
+        match item {
             DisplayCommand::SolidColor(color, rect) => {
                 // clip rect to canvas boundaries
                 let x0 = rect.x.clamp(0.0, self.width as f32) as usize;
@@ -120,7 +120,7 @@ impl Canvas {
                 for y in y0..y1 {
                     for x in x0..x1 {
                         // TODO: alpha compositing with existing pixel
-                        self.pixels[y * self.width + x] = color;
+                        self.pixels[y * self.width + x] = *color;
                     }
                 }
             }
