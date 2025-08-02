@@ -60,12 +60,22 @@ pub enum Unit {
     // insert more units as required
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
     pub b: u8,
     pub a: u8
+}
+
+impl Value {
+    /// Convert a value to pixels
+    pub fn to_px(&self) -> f32 {
+        match *self {
+            Value::Length(f, Unit::Px) => f,
+            _ => 0.0,  // Return 0 for non-length values
+        }
+    }
 }
 
 pub type Specificity = (usize, usize, usize);
